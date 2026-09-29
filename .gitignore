@@ -1,0 +1,15 @@
+# Data, images and checkpoints live on external storage (data/ is a symlink to D:)
+data
+data/
+*.pt
+
+# Split CSVs contain competition labels; split.ipynb regenerates them (fixed seed)
+splits/
+
+# Session notes
+async1.txt
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
