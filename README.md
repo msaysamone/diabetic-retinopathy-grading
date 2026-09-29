@@ -21,6 +21,20 @@ Brackets are bootstrap 95% confidence intervals. *Referable* means grade ≥ 2, 
   - One proliferative case is graded mild by both models, so it isn't referred.
   - About half of the mild cases (14 of 30) are graded moderate. This is the main source of false referrals.
 
+### APTOS 2019 competition (late submission)
+
+The same two models were also submitted after the deadline to the [APTOS 2019 Blindness Detection](https://www.kaggle.com/competitions/aptos2019-blindness-detection) competition. It's a code competition: Kaggle runs the inference notebook on its hidden test set of about 13,000 images. These images are not part of the APTOS split used above; that split was carved from the competition's training set.
+
+| Model | Public QWK | Private QWK |
+|---|---|---|
+| Dev-selected | 0.779 | 0.899 |
+| Refit (train + dev) | 0.775 | 0.900 |
+
+- **Private QWK of 0.90** is close to the 0.908–0.912 on our own test split. That's despite the hidden set's different framing (lower-resolution images, with the fundus often cut off at the top and bottom) and very different grade mix.
+- **The public score is much lower,** as it was for most teams in this competition. The public set is a small slice (about 1,900 images) with an unusual grade mix. The leaderboard was ranked on the private score.
+- **Winning solutions scored about 0.93–0.94 private,** using ensembles of several larger models, larger inputs and pseudo-labelling. This is a single ResNet50 at 512 px with no test-time augmentation.
+- Late submissions aren't ranked on the leaderboard.
+
 ## What was tried
 
 Each iteration changes one thing from the baseline. All results are on the **APTOS dev split** (366 images) at the best epoch. The Δ interval is a paired bootstrap against the baseline: both runs are scored on the same resampled images. A change counts as an improvement only if that interval is above 0.
@@ -124,5 +138,5 @@ python evaluate.py                   # dry run on dev; `--test` for the final te
 - **Small evaluation sets.** APTOS dev and test have only 17–40 images each in grades 1, 3 and 4, so per-grade recall moves by 3–6 points per image, and confidence intervals are wide.
 - **One stage-1 checkpoint.** All stage-2 iterations reuse iter1's stage 1, which was picked at epoch 8 with the learning rate still about 83% of its peak. Changing stage 1 (for example, applying soft labels or mixup there too) wasn't tested.
 - **The learning rate was never tuned.** Every iteration uses the baseline's learning rate, so "no improvement" means no improvement at these settings.
-- **No external validation yet.** Messidor-2, the planned out-of-domain test with adjudicated grades from Krause et al. 2018, hasn't been evaluated. APTOS test comes from the same source as the training data, so it doesn't show how the model handles other cameras or populations.
+- **Limited external validation.** The competition's hidden test set shows the model holds up under a shift in framing and grade mix, but it's still APTOS data (the same Aravind Eye Hospital program). Messidor-2, the planned out-of-domain test with adjudicated grades from Krause et al. 2018, hasn't been evaluated. So the README doesn't yet show how the model handles other cameras or populations.
 - **Not a medical device.** This is a research project. It isn't validated for clinical use.
