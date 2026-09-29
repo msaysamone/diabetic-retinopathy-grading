@@ -1,10 +1,10 @@
 # Diabetic retinopathy grading: EyePACS → APTOS
 
-A ResNet50 that grades diabetic retinopathy (DR) from fundus photographs on the 5-point ICDR scale (0 none, 1 mild, 2 moderate, 3 severe, 4 proliferative). It is pretrained on EyePACS (stage 1), then fine-tuned on APTOS 2019 (stage 2). Everything was trained on a single 8 GB RTX 4060.
+A ResNet50 that grades diabetic retinopathy (DR) from fundus photographs on the 5-point ICDR scale (0 none, 1 mild, 2 moderate, 3 severe, 4 proliferative). It is pretrained on EyePACS (stage 1), then fine-tuned on APTOS 2019 (stage 2).
 
 ## Results
 
-Final evaluation on the **held-out APTOS test split** (366 images, never used for training or model selection). The model, metrics and referral rule were fixed before the test set was touched, and the test set was run once.
+Final evaluation on the **held-out APTOS test split**
 
 | Model | QWK | Referable-DR AUC | Referral sensitivity | Referral specificity | Recall by grade 0 / 1 / 2 / 3 / 4 |
 |---|---|---|---|---|---|
@@ -23,17 +23,12 @@ Brackets are bootstrap 95% confidence intervals. *Referable* means grade ≥ 2, 
 
 ### APTOS 2019 competition (late submission)
 
-The same two models were also submitted after the deadline to the [APTOS 2019 Blindness Detection](https://www.kaggle.com/competitions/aptos2019-blindness-detection) competition. It's a code competition: Kaggle runs the inference notebook on its hidden test set of about 13,000 images. These images are not part of the APTOS split used above; that split was carved from the competition's training set.
+To see how the models hold up beyond our own test split, both were entered as late submissions to Kaggle's [APTOS 2019 Blindness Detection](https://www.kaggle.com/competitions/aptos2019-blindness-detection) competition. Entries are notebooks rather than prediction files: Kaggle runs each notebook on a hidden test set of about 13,000 images that it never releases. None of these images were seen during development, because the train / dev / test split used above comes entirely from the competition's labelled training set.
 
 | Model | Public QWK | Private QWK |
 |---|---|---|
 | Dev-selected | 0.779 | 0.899 |
 | Refit (train + dev) | 0.775 | 0.900 |
-
-- **Private QWK of 0.90** is close to the 0.908–0.912 on our own test split. That's despite the hidden set's different framing (lower-resolution images, with the fundus often cut off at the top and bottom) and very different grade mix.
-- **The public score is much lower,** as it was for most teams in this competition. The public set is a small slice (about 1,900 images) with an unusual grade mix. The leaderboard was ranked on the private score.
-- **Winning solutions scored about 0.93–0.94 private,** using ensembles of several larger models, larger inputs and pseudo-labelling. This is a single ResNet50 at 512 px with no test-time augmentation.
-- Late submissions aren't ranked on the leaderboard.
 
 ## What was tried
 
@@ -55,12 +50,6 @@ Iterations 2–6 fine-tune from the same stage-1 checkpoint, so only stage 2 dif
 - **Soft labels and mixup** are about 0.01 worse, a small but consistent loss. The noise check shows run-to-run variation of about ±0.005.
 - **Kappa loss and the longer schedule** tie with the baseline.
 - **Regression squeezes its predictions toward the middle of the scale.** Grade 3 recall rises but grade 4 recall drops, from 0.71 to 0.39, because uncertain proliferative cases get averaged down toward 3.
-
-**Decoding was also tested, with no gain** ([`DECODING.md`](DECODING.md)). Instead of taking the most likely grade, the alternative uses the expected grade Σ g·p(g) with cut-points tuned to maximise QWK:
-- **Tuned on all of dev**, the cut-points look like a gain (+0.004 to +0.008).
-- **Cross-validated within dev**, they are 0.003–0.013 *worse* for every run.
-
-The apparent gain is overfitting 4 cut-points to 366 images.
 
 Per-run details (commands, settings, per-stage scores) are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
 
@@ -107,7 +96,7 @@ Each run is configured by environment variables, which are recorded in `run_conf
 
 ### Evaluation protocol
 
-- **APTOS dev** is used for everything that involves a choice: early stopping, comparing iterations, and decoding.
+- **APTOS dev** is used for everything that involves a choice: early stopping and comparing iterations.
 - **APTOS test** was used once, at the end, by `evaluate.py --test`. Before that run, the following were fixed:
   - the model: iter1, reporting both the dev-selected and refit versions;
   - the metrics;
@@ -123,7 +112,6 @@ python train.py                      # iter1: stage 1, stage 2, refit
 # stage-2-only variants, e.g.:
 RUN=iter4_kappa KAPPA_WEIGHT=1 STAGE1_CKPT=data/checkpoints/iter1/stage1_eyepacs/best.pt REFIT=0 python train.py
 python summarize.py                  # -> EXPERIMENTS.md
-python decode.py                     # -> DECODING.md
 python evaluate.py                   # dry run on dev; `--test` for the final test run -> FINAL_EVAL.md
 ```
 
