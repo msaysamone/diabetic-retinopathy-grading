@@ -105,7 +105,7 @@ def main():
         "Diabetic retinopathy grading: ResNet50 pretrained on EyePACS (stage 1), fine-tuned on APTOS 2019 (stage 2).",
         "All numbers are on the **APTOS dev split** (366 images), at the epoch with the best dev QWK. "
         "Dev is also used to pick that epoch, so these scores are slightly optimistic; "
-        "APTOS test and Messidor-2 are held out until the final evaluation.",
+        "the APTOS test split is held out for the final evaluation.",
         "",
         f"Brackets are bootstrap 95% confidence intervals ({N_BOOT} resamples of dev images). "
         "The Δ column's interval is **paired**: both runs are scored on the same resampled images, "
