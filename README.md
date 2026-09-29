@@ -2,6 +2,8 @@
 
 A ResNet50 that grades diabetic retinopathy (DR) from fundus photographs on the 5-point ICDR scale (0 none, 1 mild, 2 moderate, 3 severe, 4 proliferative). It is pretrained on EyePACS (stage 1), then fine-tuned on APTOS 2019 (stage 2).
 
+> Research project: not a medical device and not validated for clinical use.
+
 ## Results
 
 Final evaluation on the **held-out APTOS test split**
